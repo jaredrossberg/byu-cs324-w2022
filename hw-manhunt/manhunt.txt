@@ -1,0 +1,19 @@
+1. Executable programs: 1
+System calls: 2
+Library calls: 3
+
+2. section 2
+
+3. #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+4. sections 2, 7
+
+5. section 7
+
+6. 7
+
+7. null-terminated
+
+8. an integer greater than zero
