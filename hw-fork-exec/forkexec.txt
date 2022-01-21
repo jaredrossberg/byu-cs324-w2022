@@ -1,0 +1,15 @@
+Part 1
+
+1. Exec prints its pid and then sleeps for 30 seconds.
+It then runs the program given as a command line argument, 
+and otherwise exits.
+
+2. The final printf() statement will only get executed if a commandline
+argument is given, but is not able to be executed.
+
+Part 2
+3.
+jaredrossberg@chem-2006086: hw-fork-exec % ./exec /bin/cat                                           │          [-g grp[,grp...]] [-u [uid,uid...]]
+Program "./exec" has pid 2786. Sleeping.                                                             │          [-p pid[,pid...]] [-t tty[,tty...]] [-U user[,user...]]
+Running exec of "/bin/cat"
+
