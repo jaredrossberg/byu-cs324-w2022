@@ -9,7 +9,145 @@ argument is given, but is not able to be executed.
 
 Part 2
 3.
-jaredrossberg@chem-2006086: hw-fork-exec % ./exec /bin/cat                                           │          [-g grp[,grp...]] [-u [uid,uid...]]
-Program "./exec" has pid 2786. Sleeping.                                                             │          [-p pid[,pid...]] [-t tty[,tty...]] [-U user[,user...]]
+jaredtr1g@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ ./exec /bin/cat                                           │          [-g grp[,grp...]] [-u [uid,uid...]]
+Program "./exec" has pid 2009893. Sleeping.                                                           │          [-p pid[,pid...]] [-t tty[,tty...]] [-U user[,user...]]
 Running exec of "/bin/cat"
+
+4.
+jaredtr1@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ ps -q 2009893 -eo user,pid,ppid,state,ucmd
+USER         PID    PPID S CMD
+jaredtr1 2009893 2008810 S exec
+jaredtr1@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ ps -q 2009893 -eo user,pid,ppid,state,ucmd
+USER         PID    PPID S CMD
+jaredtr1 2009893 2008810 S cat
+
+5. The user, PID, PPID, and state are all the same both times ps is run,
+but the command changes from exec to cat.
+
+6.
+jaredtr1@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ ./exec /does-not-exist
+Program "./exec" has pid 2011939. Sleeping.
+Running exec of "/does-not-exist"
+End of program "./exec".
+
+When exec was unable to run the program given to it, it continued as if it
+had successfully finished execution.
+
+Part 3
+7. Behavior for fork.c:
+The program prints its own process ID, then forks itself. If unable to
+do so, it exits. If successful, each program enters section A and prints
+its pid once again. After sleeping 30 seconds, the child enters section
+B then sleeps 30 more seconds and quits. The parent process enters section
+C and sleeps for 1 minute. Neither the parent or child ever reach section D.
+
+8. Section A is ran by both the parent and child. Section B is only ran by the
+child. Section C is ran by the parent. Section D is not ran at all.
+
+Part 4
+9.
+jaredtr1@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ ./fork
+Starting program; process has pid 2027713
+Section A;  pid 2027713
+Section A;  pid 2027714
+Section C
+Section B
+Section B done sleeping
+Section C done sleeping
+
+jaredtr1@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ ps -eo user,pid,ppid,state,ucmd --forest | grep 'PID\|2027713'USER         PID    PPID S CMD
+jaredtr1 2027713 2014025 S              \_ fork
+jaredtr1 2027714 2027713 S                  \_ fork
+jaredtr1@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ ps -eo user,pid,ppid,state,ucmd --forest | grep 'PID\|2027713'
+USER         PID    PPID S CMD
+jaredtr1 2027713 2014025 S              \_ fork
+jaredtr1 2027714 2027713 Z                  \_ fork <defunct>
+
+
+10. Almost everything is the same between the outputs of the two commands, but
+the child is listed as being in a zombie state the second time the command
+is run.
+
+11. Command to add to reap child process: wait(NULL);
+This could go at the beginning of section C.
+
+12.
+jaredtr1@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ ps -eo user,pid,ppid,state,ucmd --forest | grep 'PID\|2030465'
+USER         PID    PPID S CMD
+jaredtr1 2030465 2014025 S              \_ fork
+jaredtr1 2030466 2030465 S                  \_ fork
+jaredtr1@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ ps -eo user,pid,ppid,state,ucmd --forest | grep 'PID\|2030465'
+USER         PID    PPID S CMD
+jaredtr1 2030465 2014025 S              \_ fork
+
+13.
+The second call to ps does not list the child process because it has been successfully
+reaped by parent's call to wait().
+
+14.
+jaredtr1@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ ps -eo user,pid,ppid,state,ucmd --forest | grep 'PID\|2032655'USER         PID    PPID S CMD
+jaredtr1 2032655 2014025 S              \_ fork
+jaredtr1 2032656 2032655 S                  \_ fork
+jaredtr1@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ ps -eo user,pid,ppid,state,ucmd --forest | grep 'PID\|2032655'
+USER         PID    PPID S CMD
+
+15. 13. The second call to ps did not output any processes because the parent
+finished executing before the child. When the parent finished, the
+child changed to become a child of the top level init process who then reaped it When
+it finished executing.
+
+Part 5
+
+16.
+BEFORE FORK
+SECTION A
+SECTION A
+SECTION C
+SECTION B
+
+17. Both the parent and child processes are allowed to write to the file concurrently.
+Neither is blocked by the other from opening or writing to the file.
+
+Part 6
+18.
+jaredtr1@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ ./fork
+Starting program; process has pid 2047473
+Section A;  pid 2047473
+Section A;  pid 2047474
+Section B
+Hello from Section B
+Section C
+
+Part 7
+19.
+jaredtr1@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ echo foobar | ./fork /bin/cat
+Starting program; process has pid 2050856
+Section A;  pid 2050856
+Section A;  pid 2050857
+Section B
+Program "./fork" has pid 2050857. Sleeping.
+Running exec of "/bin/cat"
+foobar
+
+Section C
+
+Part 8
+20.
+jaredtr1@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ echo foobar | ./fork /bin/cat
+Starting program; process has pid 2054831
+Section A;  pid 2054831
+Section A;  pid 2054832
+Section B
+Program "./fork" has pid 2054832. Sleeping.
+Running exec of "/bin/cat"
+foobar
+
+Section C
+
+jaredtr1@grandcanyon:~/byu-cs324-w2022/hw-fork-exec$ cat fork-output.txt 
+BEFORE FORK
+SECTION A
+SECTION A
+SECTION B
+SECTION C
 
